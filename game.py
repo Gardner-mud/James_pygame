@@ -1,43 +1,80 @@
-
-# Example file showing a basic pygame "game loop"
 import pygame
+
 # pygame setup
 pygame.init()
-pygame.init.mixer()
 
-#set game dimensions 
-WIDTH =1280
-HEIGHT =720
+# Set game dimensions
+WIDTH, HEIGHT = 1280, 720
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-
-pygame.init()
-screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
 
-#blitting background and whatnot
-background=build_background(WIDTH, HEIGHT)
-background = pygame.image.load('assests/tiles/Moon_Space.png')
+# Blitting background and initializing the player
+Display_Background = pygame.image.load('assets/tiles/Moon_Space.png')
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()  # Call the parent class's __init__ to initialize the Sprite properly
+        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Ships/spaceShips_007.png')  # Path to the astronaut image
+        self.image = pygame.transform.scale(self.image, (50, 50))  # Scale to appropriate size
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 5
+
+    def controls(self, keys):
+        """Handles movement controls"""
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+        if keys[pygame.K_UP]:
+            self.rect.y -= self.speed
+        if keys[pygame.K_DOWN]:
+            self.rect.y += self.speed
+
+        # Keep the player within the screen bounds
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+
+    def update(self):
+        """Update method to handle the controls and movement"""
+        keys = pygame.key.get_pressed()  # Get the current state of all keys
+        self.controls(keys)
+
+
+player = Player(5, 5)
+all_sprites = pygame.sprite.Group()
+all_sprites.add(player)
 
 while running:
-    # poll for events
-
-    # pygame.QUIT event means the user clicked X to close your window
+    # Poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("blue")
+    # Update game logic here
+    all_sprites.update()  # This will call the update method of all sprites, including the player
 
-    # RENDER YOUR GAME HERE
-    screen.blit(background, (0,0))
+    # Clear screen with a background color or image
+    screen.fill((0, 0, 255))  # Fill the screen with blue as the background (optional)
 
+    # Draw the background
+    screen.blit(Display_Background, (0, 0))  # Draw the background image
 
-    # flip() the display to put your work on screen
-    pygame.display.flip()
+    # Draw all sprites
+    all_sprites.draw(screen)  # Draw all sprites (player and obstacles)
 
-    clock.tick(60)  # limits FPS to 60
+    # Update the display
+    pygame.display.update()
 
+    # Set the frame rate (60 FPS)
+    clock.tick(60)
+
+# Quit pygame when the loop is done
 pygame.quit()
