@@ -1,18 +1,24 @@
 
 # Example file showing a basic pygame "game loop"
 import pygame
-import pygame
 # pygame setup
+pygame.init()
+pygame.init.mixer()
 
+#set game dimensions 
 WIDTH =1280
+HEIGHT =720
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
 
+#blitting background and whatnot
 background=build_background(WIDTH, HEIGHT)
-
+background = pygame.image.load('assests/tiles/Moon_Space.png')
 
 while running:
     # poll for events
