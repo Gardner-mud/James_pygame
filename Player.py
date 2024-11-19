@@ -1,5 +1,6 @@
 import pygame 
 import random 
+imp
 
 #making the player and choosing space ship as skin
 class Player(pygame.sprite.Sprite):
@@ -8,6 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (50, 50))  # Scale to appropriate size
         self.rect = self.image.get_rect(center=(x, y))
         self.speed= 5
+        self.angle= 0
 # using up down left right as controls 
     def controls(self, keys):
         
