@@ -20,11 +20,13 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (50, 50))  # Scale to appropriate size
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 5
+        self.angle = 0
 
     def controls(self, keys):
         """Handles movement controls"""
         if keys[pygame.K_LEFT]:
-            self.rect.x -= self.speed
+            self.angle-=2
+            self.image= pygame.transform.rotozoom(self.image, self.angle, 1)
         if keys[pygame.K_RIGHT]:
             self.rect.x += self.speed
         if keys[pygame.K_UP]:
@@ -41,7 +43,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = 0
         if self.rect.bottom > HEIGHT:
             self.rect.bottom = HEIGHT
-        self.image = pygame.transform.rotate(self.original_image, self.angle)
         self.rect = self.image.get_rect(center=self.rect.center) 
 
     def update(self):
