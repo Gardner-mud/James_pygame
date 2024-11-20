@@ -18,6 +18,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()  # Call the parent class's __init__ to initialize the Sprite properly
         self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Ships/spaceShips_007.png')  # Path to the astronaut image
         self.image = pygame.transform.scale(self.image, (50, 50))  # Scale to appropriate size
+        self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 5
         self.angle = 0
@@ -26,9 +27,8 @@ class Player(pygame.sprite.Sprite):
         """Handles movement controls"""
         if keys[pygame.K_LEFT]:
             self.angle-=2
-            self.image= pygame.transform.rotozoom(self.image, self.angle, 1)
         if keys[pygame.K_RIGHT]:
-            self.rect.x += self.speed
+            self.angle+=2
         if keys[pygame.K_UP]:
             self.rect.y -= self.speed
         if keys[pygame.K_DOWN]:
@@ -49,6 +49,7 @@ class Player(pygame.sprite.Sprite):
         """Update method to handle the controls and movement"""
         keys = pygame.key.get_pressed()  # Get the current state of all keys
         self.controls(keys)
+        self.image= pygame.transform.rotozoom(self.orig_image, self.angle, 1)
 
 
 player = Player(5, 5)
