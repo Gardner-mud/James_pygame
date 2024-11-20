@@ -18,7 +18,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()  # Call the parent class's __init__ to initialize the Sprite properly
         self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Ships/spaceShips_007.png')  # Path to the astronaut image
-        self.image = pygame.transform.scale(self.image, (50, 50))  # Scale to appropriate size
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.image = pygame.transform.rotozoom(self.image, 270,1)  # Scale to appropriate size
         self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 5
@@ -26,15 +27,17 @@ class Player(pygame.sprite.Sprite):
 
     def controls(self, keys):
         if keys[pygame.K_LEFT]:
-            self.angle-=2
+            self.angle+=3
         if keys[pygame.K_RIGHT]:
-            self.angle+=2
+            self.angle-=3
         if keys[pygame.K_UP]:
-            self.rect.y += self.speed * math.sin(radians)
-            self.rect.x += self.speed * math.cos(radians)
+            radians = math.radians(self.angle)
+            self.rect.centery -= self.speed * math.sin(radians)
+            self.rect.centerx += self.speed * math.cos(radians)
         if keys[pygame.K_DOWN]:
-            self.rect.y -= self.speed * math.sin(radians)
-            self.rect.x -= self.speed * math.cos(radians)
+            radians = math.radians(self.angle)
+            self.rect.centery += self.speed * math.sin(radians)
+            self.rect.centerx -= self.speed * math.cos(radians)
 
         # Keep the player within the screen bounds
         if self.rect.left < 0:
@@ -51,10 +54,12 @@ class Player(pygame.sprite.Sprite):
         """Update method to handle the controls and movement"""
         keys = pygame.key.get_pressed()  # Get the current state of all keys
         self.controls(keys)
+
         self.image= pygame.transform.rotozoom(self.orig_image, self.angle, 1)
+        
 
 
-player = Player(5, 5)
+player = Player(1280/2, 720/2)
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
