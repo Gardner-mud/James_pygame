@@ -1,4 +1,5 @@
 import pygame
+import math
 
 # pygame setup
 pygame.init()
@@ -24,15 +25,16 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0
 
     def controls(self, keys):
-        """Handles movement controls"""
         if keys[pygame.K_LEFT]:
             self.angle-=2
         if keys[pygame.K_RIGHT]:
             self.angle+=2
         if keys[pygame.K_UP]:
-            self.rect.y -= self.speed
+            self.rect.y += self.speed * math.sin(radians)
+            self.rect.x += self.speed * math.cos(radians)
         if keys[pygame.K_DOWN]:
-            self.rect.y += self.speed
+            self.rect.y -= self.speed * math.sin(radians)
+            self.rect.x -= self.speed * math.cos(radians)
 
         # Keep the player within the screen bounds
         if self.rect.left < 0:
