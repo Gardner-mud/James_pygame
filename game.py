@@ -1,5 +1,6 @@
 import pygame
 import math
+import time
 
 # pygame setup
 pygame.init()
@@ -16,28 +17,35 @@ Display_Background = pygame.image.load('assets/tiles/Moon_Space.png')
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        super().__init__()  # Call the parent class's __init__ to initialize the Sprite properly
+        super().__init__()
         self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Ships/spaceShips_007.png')  # Path to the astronaut image
         self.image = pygame.transform.scale(self.image, (50, 50))
-        self.image = pygame.transform.rotozoom(self.image, 270,1)  # Scale to appropriate size
-        self.orig_image = self.image
+        self.orig_image = self.image  # Save the original image for re-scaling
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 5
-        self.angle = 0
+        self.angle = 0  # Initial angle
+        self.velocity = pygame.math.Vector2(0, 0)
+        self.explosion_image = pygame.image.load('assets/explosion.png')  # Explosion image for the player
+        self.exploding = False  # Flag for explosion state
 
     def controls(self, keys):
         if keys[pygame.K_LEFT]:
-            self.angle+=3
+            self.angle += 3  # Rotate left
         if keys[pygame.K_RIGHT]:
-            self.angle-=3
+            self.angle -= 3  # Rotate right
         if keys[pygame.K_UP]:
             radians = math.radians(self.angle)
-            self.rect.centery -= self.speed * math.sin(radians)
-            self.rect.centerx += self.speed * math.cos(radians)
+            # Move the player in the direction they are facing using vectors
+            self.velocity.x = self.speed * math.cos(radians)
+            self.velocity.y = -self.speed * math.sin(radians)  # Negative because Y coordinates increase downwards in Pygame
         if keys[pygame.K_DOWN]:
             radians = math.radians(self.angle)
-            self.rect.centery += self.speed * math.sin(radians)
-            self.rect.centerx -= self.speed * math.cos(radians)
+            self.velocity.x = -self.speed * math.cos(radians)
+            self.velocity.y = self.speed * math.sin(radians)
+
+        # Update player position with velocity
+        self.rect.centerx += self.velocity.x
+        self.rect.centery += self.velocity.y
 
         # Keep the player within the screen bounds
         if self.rect.left < 0:
@@ -48,14 +56,29 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = 0
         if self.rect.bottom > HEIGHT:
             self.rect.bottom = HEIGHT
-        self.rect = self.image.get_rect(center=self.rect.center) 
+
+        # Keep the player centered after movement
+        self.rect = self.image.get_rect(center=self.rect.center)
 
     def update(self):
-        #Update method to handle the controls and movement
-        keys = pygame.key.get_pressed()  # Get the current state of all keys
-        self.controls(keys)
+        if not self.exploding:
+            keys = pygame.key.get_pressed()
+            self.controls(keys)
 
-        self.image= pygame.transform.rotozoom(self.orig_image, self.angle, 1)
+            # Rotate the image to match the current angle
+            self.image = pygame.transform.rotate(self.orig_image, self.angle)
+            self.rect = self.image.get_rect(center=self.rect.center)
+        else:
+            # Show explosion image when exploding
+            self.image = self.explosion_image
+            self.rect = self.image.get_rect(center=self.rect.center)
+            # After explosion, stop the game (you can add a delay here for the explosion to stay visible)
+            time.sleep(1)  # Display explosion for 1 second
+            pygame.quit()
+            exit()
+
+    def trigger_explosion(self):
+        self.exploding = True  # Set exploding flag to true
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -87,9 +110,10 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
-player = Player(1280/2, 720/2)
+player = Player(1280 / 2, 720 / 2)
+enemy = Enemy(100, 100, player)  # Start the enemy at (100, 100)
 all_sprites = pygame.sprite.Group()
-all_sprites.add(player)
+all_sprites.add(player, enemy)
 
 while running:
     # Poll for events
@@ -97,8 +121,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # Check for collision between player and enemy
+    if pygame.sprite.collide_rect(player, enemy):
+        player.trigger_explosion()  # Trigger explosion if collision happens
+
     # Update game logic here
-    all_sprites.update()  # This will call the update method of all sprites, including the player
+    all_sprites.update()  # This will call the update method of all sprites, including the player and enemy
 
     # Clear screen with a background color or image
     screen.fill((0, 0, 255))  # Fill the screen with blue as the background (optional)
@@ -107,7 +135,7 @@ while running:
     screen.blit(Display_Background, (0, 0))  # Draw the background image
 
     # Draw all sprites
-    all_sprites.draw(screen)  # Draw all sprites (player and obstacles)
+    all_sprites.draw(screen)  # Draw all sprites (player and enemy)
 
     # Update the display
     pygame.display.update()
