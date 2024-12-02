@@ -51,12 +51,40 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center) 
 
     def update(self):
-        """Update method to handle the controls and movement"""
+        #Update method to handle the controls and movement
         keys = pygame.key.get_pressed()  # Get the current state of all keys
         self.controls(keys)
 
         self.image= pygame.transform.rotozoom(self.orig_image, self.angle, 1)
-        
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, player):
+        super().__init__()
+        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Ships/spaceShips_001.png')  # Path to the enemy image
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.orig_image = self.image
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 2  # Slow speed for the enemy
+        self.player = player  # The player instance that the enemy will track
+
+    def update(self):
+        # Calculate direction vector from enemy to player
+        direction = pygame.math.Vector2(self.player.rect.centerx - self.rect.centerx, self.player.rect.centery - self.rect.centery)
+        direction_length = direction.length()  # Get the length of the direction vector
+
+        # Normalize the direction vector (convert it to a unit vector)
+        if direction_length != 0:
+            direction.normalize_ip()
+
+        # Move the enemy towards the player
+        self.rect.centerx += direction.x * self.speed
+        self.rect.centery += direction.y * self.speed
+
+        # Rotate the enemy to face the player
+        angle = math.degrees(math.atan2(direction.y, direction.x))
+        self.image = pygame.transform.rotate(self.orig_image, -angle)  # Invert angle for correct rotation
+        self.rect = self.image.get_rect(center=self.rect.center)
 
 
 player = Player(1280/2, 720/2)
