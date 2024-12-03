@@ -58,10 +58,14 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotozoom(self.orig_image, self.angle, 1)
 
     def shoot(self):
-        # Create a bullet 
-        bullet = Bullet(self.rect.centerx, self.rect.centery, self.angle)
-        all_sprites.add(bullet)
-        bullets.add(bullet)
+    # Offset the bullet spawn position slightly in the direction of the player's current angle
+        radians = math.radians(self.angle)
+        bullet_x = self.rect.centerx + math.cos(radians) * 30  # Spawn 30 pixels ahead
+        bullet_y = self.rect.centery - math.sin(radians) * 30
+        bullet = Bullet(bullet_x, bullet_y, self.angle, self)  # Pass the player reference
+        all_sprites.add(bullet)  # Add bullet to all sprites
+        bullets.add(bullet)      # Add bullet to bullets group
+
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -89,30 +93,80 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)  # Update the rect after rotation
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle):
+    def __init__(self, x, y, angle, player):
         super().__init__()
-        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Misc/laserRed12.png')  # Path to the bullet image
+        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Missiles/spaceMissiles_022.png')
         self.image = pygame.transform.scale(self.image, (10, 30))
         self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 10
         self.angle = angle
+        self.do_not_collide = True  # Initially avoid collisions with the player
+        self.player = player  # Reference to the player to check distance
+
+    def update(self):
+        # Move the bullet in the direction it is facing
+        radians = math.radians(self.angle)
+        self.rect.centery -= self.speed * math.sin(radians)
+        self.rect.centerx += self.speed * math.cos(radians)
+
+        # Allow collisions after the bullet is far enough from the player
+        if self.do_not_collide and self.rect.center != self.player.rect.center:
+            distance = math.hypot(self.rect.centerx - self.player.rect.centerx,
+                                  self.rect.centery - self.player.rect.centery)
+            if distance > 50:  # Safe distance threshold (50 pixels)
+                self.do_not_collide = False
+
+        # Remove the bullet if it goes off-screen
+        if self.rect.bottom < 0 or self.rect.top > HEIGHT or self.rect.right < 0 or self.rect.left > WIDTH:
+            self.kill()
+
+        # Check for collisions with enemies only if do_not_collide is False
+        if not self.do_not_collide:
+            enemy_hit = pygame.sprite.spritecollideany(self, enemies)
+            if enemy_hit:
+                self.kill()
+                enemy_hit.kill()
+                print("Enemy destroyed!")
 
     
 
 
-# Initialize player and enemy
+
+
+# Initialize player, enemies, and bullets
 player = Player(WIDTH / 2, HEIGHT / 2)
+enemies = pygame.sprite.Group()
+bullets = pygame.sprite.Group()  # Initialize bullets group
+
+# Add an enemy for testing
 enemy = Enemy(100, 100, player)
+enemies.add(enemy)
+
+# Add all sprites to a single group for easier updates and drawing
+all_sprites = pygame.sprite.Group()
+all_sprites.add(player)
+all_sprites.add(enemy)
+
+
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 all_sprites.add(enemy)
 
 while running:
-    # Poll for events
     for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                try:
+                    player.shoot()  # Attempt to shoot a bullet
+                except Exception as e:
+                    print(f"Error when shooting: {e}")
+                    running = False  # Stop the game for debugging
         if event.type == pygame.QUIT:
             running = False
+
+    
+        
 
     # Update game logic here
     all_sprites.update()  # This will call the update method of all sprites, including the player
@@ -134,4 +188,3 @@ while running:
 
 # Quit pygame when the loop is done
 pygame.quit()
-
