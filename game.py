@@ -95,8 +95,8 @@ class Enemy(pygame.sprite.Sprite):
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, player):
         super().__init__()
-        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Missiles/spaceMissiles_022.png')
-        self.image = pygame.transform.scale(self.image, (10, 30))
+        self.image = pygame.image.load('assets\kenney_space-shooter-extension\PNG\Sprites\Building\spaceBuilding_006.png')
+        self.image = pygame.transform.scale(self.image, (30, 30))
         self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 10
