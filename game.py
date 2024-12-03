@@ -54,8 +54,14 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()  # Get the current state of all keys
         self.controls(keys)
 
-        # Rotate the image
+        # Rotate 
         self.image = pygame.transform.rotozoom(self.orig_image, self.angle, 1)
+
+    def shoot(self):
+        # Create a bullet 
+        bullet = Bullet(self.rect.centerx, self.rect.centery, self.angle)
+        all_sprites.add(bullet)
+        bullets.add(bullet)
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -65,11 +71,11 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (50, 50))
         self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 2  # Slow speed for the enemy
+        self.speed = 2  
         self.player = player  # The player instance that the enemy will track
 
     def update(self):
-        # Calculate direction towards the player
+        # Calculate direction towards the player, this sucked to figure out
         dx = self.player.rect.centerx - self.rect.centerx
         dy = self.player.rect.centery - self.rect.centery
         angle = math.atan2(dy, dx)
@@ -81,6 +87,18 @@ class Enemy(pygame.sprite.Sprite):
         # Rotate the enemy to face the player
         self.image = pygame.transform.rotate(self.orig_image, -math.degrees(angle))  # Rotate the enemy to face the player
         self.rect = self.image.get_rect(center=self.rect.center)  # Update the rect after rotation
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, angle):
+        super().__init__()
+        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Misc/laserRed12.png')  # Path to the bullet image
+        self.image = pygame.transform.scale(self.image, (10, 30))
+        self.orig_image = self.image
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 10
+        self.angle = angle
+
+    
 
 
 # Initialize player and enemy
