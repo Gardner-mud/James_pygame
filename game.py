@@ -13,7 +13,33 @@ running = True
 
 # Blitting background and initializing the player
 Display_Background = pygame.image.load('assets/tiles/Moon_Space.png')
+#here is my title screen that I have before the game starts
+def show_title_screen():
+    font = pygame.font.SysFont('Arial', 48)
+    instructions_font = pygame.font.SysFont('Arial', 28)
 
+    title_text = font.render('Space Survival', True, (255, 255, 255))  # White text for title
+    instructions_text = instructions_font.render('Survive for as long as you can against enemy waves', True, (255, 255, 255))  # Instructions text
+
+    # Center the text
+    title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+    instructions_rect = instructions_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+
+    screen.fill((0, 0, 0))  # Black background for the title screen
+    screen.blit(title_text, title_rect)  # Draw title
+    screen.blit(instructions_text, instructions_rect)  # Draw instructions
+
+    pygame.display.update()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:  # Wait for any key press to start the game
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    waiting_for_input = False  # Exit the loop to start the game
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -159,6 +185,7 @@ enemies_per_wave = 3
 # Add the first wave of enemies
 spawn_wave(player, current_wave)
 
+show_title_screen()
 # Main game loop
 while running:
     for event in pygame.event.get():
