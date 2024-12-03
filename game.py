@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 # pygame setup
 pygame.init()
@@ -58,15 +59,13 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotozoom(self.orig_image, self.angle, 1)
 
     def shoot(self):
-    # Offset the bullet spawn position slightly in the direction of the player's current angle
+        # Offset the bullet spawn position slightly in the direction of the player's current angle
         radians = math.radians(self.angle)
         bullet_x = self.rect.centerx + math.cos(radians) * 30  # Spawn 30 pixels ahead
         bullet_y = self.rect.centery - math.sin(radians) * 30
         bullet = Bullet(bullet_x, bullet_y, self.angle, self)  # Pass the player reference
         all_sprites.add(bullet)  # Add bullet to all sprites
         bullets.add(bullet)      # Add bullet to bullets group
-
-
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, player):
@@ -79,7 +78,7 @@ class Enemy(pygame.sprite.Sprite):
         self.player = player  # The player instance that the enemy will track
 
     def update(self):
-        # Calculate direction towards the player, this sucked to figure out
+        # Calculate direction towards the player
         dx = self.player.rect.centerx - self.rect.centerx
         dy = self.player.rect.centery - self.rect.centery
         angle = math.atan2(dy, dx)
@@ -95,7 +94,7 @@ class Enemy(pygame.sprite.Sprite):
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, player):
         super().__init__()
-        self.image = pygame.image.load('assets\kenney_space-shooter-extension\PNG\Sprites\Building\spaceBuilding_006.png')
+        self.image = pygame.image.load('assets/kenney_space-shooter-extension/PNG/Sprites/Building/spaceBuilding_006.png')
         self.image = pygame.transform.scale(self.image, (30, 30))
         self.orig_image = self.image
         self.rect = self.image.get_rect(center=(x, y))
@@ -129,30 +128,38 @@ class Bullet(pygame.sprite.Sprite):
                 enemy_hit.kill()
                 print("Enemy destroyed!")
 
-    
+# Function to spawn waves of enemies
+def spawn_wave(player, wave): 
+    num_enemies = enemies_per_wave + (wave - 1)  # Increase enemies with each wave
+    for _ in range(num_enemies):
+        # Randomize enemy spawn positions
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        while math.hypot(player.rect.centerx - x, player.rect.centery - y) < 200:
+            # Ensuring enemies don't spawn too close to the player
+            x = random.randint(0, WIDTH)
+            y = random.randint(0, HEIGHT)
+        enemy = Enemy(x, y, player)
+        enemies.add(enemy)
+        all_sprites.add(enemy)
 
+# Initialize groups
+enemies = pygame.sprite.Group()  # Group to track enemies
+bullets = pygame.sprite.Group()  # Group to track bullets
+all_sprites = pygame.sprite.Group()  # Group to manage all sprites
 
-
-
-# Initialize player, enemies, and bullets
+# Initialize player and enemies
 player = Player(WIDTH / 2, HEIGHT / 2)
-enemies = pygame.sprite.Group()
-bullets = pygame.sprite.Group()  # Initialize bullets group
-
-# Add an enemy for testing
-enemy = Enemy(100, 100, player)
-enemies.add(enemy)
-
-# Add all sprites to a single group for easier updates and drawing
-all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
-all_sprites.add(enemy)
 
+# Set initial wave and enemies per wave
+current_wave = 1
+enemies_per_wave = 3
 
-all_sprites = pygame.sprite.Group()
-all_sprites.add(player)
-all_sprites.add(enemy)
+# Add the first wave of enemies
+spawn_wave(player, current_wave)
 
+# Main game loop
 while running:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
@@ -165,8 +172,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    
-        
+    # Check if wave is complete and spawn the next wave if needed
+    if not enemies:  # If no enemies are left
+        current_wave += 1  # Increase the wave count
+        spawn_wave(player, current_wave)  # Spawn a new wave
+        print(f"Wave {current_wave} begins!")
 
     # Update game logic here
     all_sprites.update()  # This will call the update method of all sprites, including the player
